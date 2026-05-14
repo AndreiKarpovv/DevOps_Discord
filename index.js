@@ -14,20 +14,24 @@ async function monitor() {
         await axios.post(WEBHOOK_URL, {
             content: `🚀 BTC Price: **${price} EUR**`
         });
-        console.log(`[INFO] BTC: ${price} EUR. Sent to Discord.`);
+        console.log(`[INFO] Sent to Discord: ${price} EUR`);
     } catch (error) {
-        console.error(`[ERROR] ${error.message}`);
+        // Если ловим 429, выводим понятное сообщение
+        if (error.response && error.response.status === 429) {
+            console.error('[WARN] Too many requests. API temporary blocked us.');
+        } else {
+            console.error(`[ERROR] ${error.message}`);
+        }
     }
 }
 
 async function start() {
     console.log('Бот запущен...');
     while (true) {
-        await monitor(); // Выполняем проверку цены
-        
-        console.log('[WAIT] Ждем 5 минут перед следующей проверкой...');
-        // 300 000 мс = 5 минут. Для CoinGecko это безопасный интервал.
-        await new Promise(resolve => setTimeout(resolve, 300000)); 
+        await monitor();
+        // Ждем 10 минут (600 000 мс), чтобы блокировка 429 точно снялась
+        console.log('[WAIT] Sleeping for 10 minutes...');
+        await new Promise(resolve => setTimeout(resolve, 600000));
     }
 }
 
