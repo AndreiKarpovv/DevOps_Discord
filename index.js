@@ -1,22 +1,25 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Функция для одного прохода логики
-async function monitor() {
+const WEBHOOK_URL = process.env.DISCORD_WEBHOOK;
+const API_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur';
+
+async function run() {
+    console.log('[INFO] service=btc-bot Cron job started.');
+    
     try {
-        console.log('Проверяю курс BTC...');
-        // ТВОЯ ЛОГИКА ТУТ:
-        // 1. Запрос к API (например, Binance или CoinGecko)
-        // 2. Сравнение цены
-        // 3. Отправка в Discord через axios/node-fetch
-        
-        console.log('Данные отправлены успешно');
+        const response = await axios.get(API_URL);
+        const price = response.data.bitcoin.eur;
+        const message = {
+            content: `🚀 BTC Price: **${price} EUR**`
+        };
+
+        await axios.post(WEBHOOK_URL, message);
+        console.log(`[INFO] service=btc-bot BTC: ${price} EUR. Sent to Discord.`);
     } catch (error) {
-        console.error('Ошибка в цикле мониторинга:', error.message);
+        console.error(`[ERROR] service=btc-bot API error: ${error.message}`);
     }
 }
-
-// Главная функция с циклом
 async function start() {
     console.log('Бот запущен...');
     while (true) {
