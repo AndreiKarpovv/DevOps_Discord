@@ -1,38 +1,33 @@
 import dotenv from 'dotenv';
-import axios from 'axios'; // Добавили импорт axios
+import axios from 'axios';
 dotenv.config();
 
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK;
 const API_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur';
 
-// Переименовал в monitor, чтобы совпадало с вызовом в цикле
 async function monitor() {
-    console.log('[INFO] Checking BTC price...');
-    
     try {
+        console.log('[INFO] Checking BTC price...');
         const response = await axios.get(API_URL);
         const price = response.data.bitcoin.eur;
-        const message = {
+        
+        await axios.post(WEBHOOK_URL, {
             content: `🚀 BTC Price: **${price} EUR**`
-        };
-
-        await axios.post(WEBHOOK_URL, message);
+        });
         console.log(`[INFO] BTC: ${price} EUR. Sent to Discord.`);
     } catch (error) {
-        console.error(`[ERROR] API or Webhook error: ${error.message}`);
+        console.error(`[ERROR] ${error.message}`);
     }
 }
 
 async function start() {
-    console.log('Бот запущен и работает в бесконечном цикле...');
-    
-    while (true) {
+    console.log('Бот запущен...');
+    while (true) { // Бесконечный цикл
         await monitor();
         
-        // Интервал 1 минута
-        const interval = 60 * 1000; 
-        console.log(`[WAIT] Sleeping for ${interval / 1000} seconds...`);
-        await new Promise(resolve => setTimeout(resolve, interval));
+        // Обязательная пауза, чтобы Docker не "ел" все ресурсы 
+        // и API не забанил тебя
+        await new Promise(resolve => setTimeout(resolve, 60000)); 
     }
 }
 
