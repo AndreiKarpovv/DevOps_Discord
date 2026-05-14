@@ -1,11 +1,13 @@
 import dotenv from 'dotenv';
+import axios from 'axios'; // Добавили импорт axios
 dotenv.config();
 
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK;
 const API_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur';
 
-async function run() {
-    console.log('[INFO] service=btc-bot Cron job started.');
+// Переименовал в monitor, чтобы совпадало с вызовом в цикле
+async function monitor() {
+    console.log('[INFO] Checking BTC price...');
     
     try {
         const response = await axios.get(API_URL);
@@ -15,19 +17,21 @@ async function run() {
         };
 
         await axios.post(WEBHOOK_URL, message);
-        console.log(`[INFO] service=btc-bot BTC: ${price} EUR. Sent to Discord.`);
+        console.log(`[INFO] BTC: ${price} EUR. Sent to Discord.`);
     } catch (error) {
-        console.error(`[ERROR] service=btc-bot API error: ${error.message}`);
+        console.error(`[ERROR] API or Webhook error: ${error.message}`);
     }
 }
+
 async function start() {
-    console.log('Бот запущен...');
+    console.log('Бот запущен и работает в бесконечном цикле...');
+    
     while (true) {
         await monitor();
         
-        // Ждем 1 минуту перед следующим разом (60 000 мс)
-        // Не ставь слишком мало, иначе API тебя заблокирует
+        // Интервал 1 минута
         const interval = 60 * 1000; 
+        console.log(`[WAIT] Sleeping for ${interval / 1000} seconds...`);
         await new Promise(resolve => setTimeout(resolve, interval));
     }
 }
