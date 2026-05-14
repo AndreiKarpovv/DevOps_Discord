@@ -22,12 +22,12 @@ async function monitor() {
 
 async function start() {
     console.log('Бот запущен...');
-    while (true) { // Бесконечный цикл
-        await monitor();
+    while (true) {
+        await monitor(); // Выполняем проверку цены
         
-        // Обязательная пауза, чтобы Docker не "ел" все ресурсы 
-        // и API не забанил тебя
-        await new Promise(resolve => setTimeout(resolve, 60000)); 
+        console.log('[WAIT] Ждем 5 минут перед следующей проверкой...');
+        // 300 000 мс = 5 минут. Для CoinGecko это безопасный интервал.
+        await new Promise(resolve => setTimeout(resolve, 300000)); 
     }
 }
 
